@@ -458,7 +458,7 @@ public class AstyanaxStoreManager extends AbstractCassandraStoreManager {
             if (args.length == parameterClasses.length) {
                 boolean allInts = true;
                 for (Class<?> pc : parameterClasses) {
-                    if (!pc.equals(int.class)) {
+                    if (!(pc.equals(int.class) || pc.equals(long.class))) {
                         allInts = false;
                         break;
                     }
