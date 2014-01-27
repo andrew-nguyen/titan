@@ -149,7 +149,8 @@
     
     <profiles>
         <profile>
-            <id>aurelius-release</id>
+          <id>aurelius-release</id>
+          <!--
             <dependencies>
                 <dependency>
                     <groupId>com.thinkaurelius.titan</groupId>
@@ -159,6 +160,7 @@
                     <type>zip</type>
                 </dependency>
             </dependencies> 
+            -->
             <build>
                     <plugins>
                         <plugin>
