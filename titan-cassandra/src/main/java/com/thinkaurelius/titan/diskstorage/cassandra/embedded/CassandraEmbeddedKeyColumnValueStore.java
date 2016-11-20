@@ -15,12 +15,14 @@ import com.thinkaurelius.titan.diskstorage.util.StaticArrayEntry;
 import org.apache.cassandra.config.CFMetaData;
 import org.apache.cassandra.config.Schema;
 import org.apache.cassandra.db.*;
+import org.apache.cassandra.db.rows.Row;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.db.composites.CellNames;
 import org.apache.cassandra.db.composites.Composite;
 import org.apache.cassandra.db.filter.IDiskAtomFilter;
 import org.apache.cassandra.db.filter.SliceQueryFilter;
 import org.apache.cassandra.dht.*;
+import org.apache.cassandra.dht.Token.KeyBound;
 import org.apache.cassandra.exceptions.InvalidRequestException;
 import org.apache.cassandra.exceptions.IsBootstrappingException;
 import org.apache.cassandra.exceptions.RequestTimeoutException;
@@ -106,7 +108,6 @@ public class CassandraEmbeddedKeyColumnValueStore implements KeyColumnValueStore
                                   @Nullable SliceQuery sliceQuery,
                                   int pageSize,
                                   long nowMillis) throws BackendException {
-        IPartitioner partitioner = StorageService.getPartitioner();
 
         SliceRange columnSlice = new SliceRange();
         if (sliceQuery == null) {
@@ -121,8 +122,8 @@ public class CassandraEmbeddedKeyColumnValueStore implements KeyColumnValueStore
         /* Note: we need to fetch columns for each row as well to remove "range ghosts" */
         SlicePredicate predicate = new SlicePredicate().setSlice_range(columnSlice);
 
-        RowPosition startPosition = start.minKeyBound(partitioner);
-        RowPosition endPosition = end.minKeyBound(partitioner);
+        KeyBound startPosition = start.minKeyBound();
+        KeyBound endPosition = end.minKeyBound();
 
         List<Row> rows;
 
@@ -130,7 +131,7 @@ public class CassandraEmbeddedKeyColumnValueStore implements KeyColumnValueStore
             CFMetaData cfm = Schema.instance.getCFMetaData(keyspace, columnFamily);
             IDiskAtomFilter filter = ThriftValidation.asIFilter(predicate, cfm, null);
 
-            RangeSliceCommand cmd = new RangeSliceCommand(keyspace, columnFamily, nowMillis, filter, new Bounds<RowPosition>(startPosition, endPosition), pageSize);
+            RangeSliceCommand cmd = new RangeSliceCommand(keyspace, columnFamily, nowMillis, filter, new Bounds<KeyBound>(startPosition, endPosition), pageSize);
 
             rows = StorageProxy.getRangeSlice(cmd, ConsistencyLevel.QUORUM);
         } catch (Exception e) {

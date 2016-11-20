@@ -19,7 +19,7 @@
         <top.level.basedir>${basedir}/..</top.level.basedir>
     </properties>
     <!-- Libraries -->
-    
+
     <dependencies>
         <dependency>
             <groupId>com.thinkaurelius.titan</groupId>
@@ -57,7 +57,7 @@
              backend throughout all its tests.   I don't want to maintain a mixture
              of logback.xml and log4j.properties files scattered randomly through
              the titan-* submodules.  Maven populates the classpath elements for
-             tests in pom appearance order.  That's why these dependencies are 
+             tests in pom appearance order.  That's why these dependencies are
              explicitly declared below: to make slf4j-log4j12 preced logback-classic
              on the test classpath. -->
         <dependency>
@@ -93,6 +93,33 @@
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-all</artifactId>
             <!-- The version is controlled in <dependencyManagement> in the parent pom -->
+            <exclusions>
+              <exclusion>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <!-- deferring to explicit version above -->
+              </exclusion>
+              <exclusion>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <!-- deferring to explicit version above -->
+              </exclusion>
+              <exclusion>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <!-- jcl-over-slf4j also provided by org.apache.cassandra/cassandra-all -->
+              </exclusion>
+              <exclusion>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna</artifactId>
+                <!-- provided as an explicit dependency and otherwise creates version conflict -->
+              </exclusion>
+              <exclusion>
+                <groupId>io.dropwizard.metrics</groupId>
+                <artifactId>metrics-core</artifactId>
+                <!-- provided as part of titan-hadoop-parent  and otherwise creates version conflict -->
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>commons-pool</groupId>
@@ -126,7 +153,7 @@
     </dependencies>
 
     <build>
-    
+
         <resources>
             <resource>
                 <directory>${basedir}/src/main/resources</directory>
@@ -138,8 +165,16 @@
                 <directory>${basedir}/src/test/resources</directory>
             </testResource>
         </testResources>
-        
+
         <plugins>
+            <plugin>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <configuration>
+                <excludes>
+                  <exclude>com/thinkaurelius/titan/diskstorage/cassandra/embedded/*.java</exclude>
+                </excludes>
+              </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
@@ -229,7 +264,7 @@
                     </execution>
                     <execution>
                         <!-- Run by "mvn org.apache.maven.plugins:maven-surefire-plugin:test"
-                
+
                             Sonar does this when running JaCoCo and
                             provides no configuration option to
                             change its behavior. Define a safe
@@ -346,8 +381,8 @@
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
-                    <!-- Provide Java Memory Meter for Cassandra. Cassandra logs warnings if JAMM 
-                      is not available. Also, production Cassandra deployments will probably use JAMM, 
+                    <!-- Provide Java Memory Meter for Cassandra. Cassandra logs warnings if JAMM
+                      is not available. Also, production Cassandra deployments will probably use JAMM,
                       so we might as well include it in our test configuration. -->
                     <execution>
                         <id>copy</id>

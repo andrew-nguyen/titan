@@ -15,7 +15,7 @@ import com.thinkaurelius.titan.diskstorage.util.BufferUtil;
 import com.thinkaurelius.titan.diskstorage.util.StaticArrayBuffer;
 import com.thinkaurelius.titan.diskstorage.util.StaticArrayEntry;
 import com.thinkaurelius.titan.diskstorage.util.StaticArrayEntryList;
-import org.apache.cassandra.dht.BytesToken;
+import org.apache.cassandra.dht.ByteOrderedPartitioner.BytesToken;
 import org.apache.cassandra.dht.Range;
 import org.apache.cassandra.dht.Token;
 
@@ -107,8 +107,10 @@ public class CassandraHelper {
         BytesToken l = (BytesToken) leftKeyExclusive;
         BytesToken r = (BytesToken) rightKeyInclusive;
 
-        byte[] leftTokenValue = l.getTokenValue();
-        byte[] rightTokenValue = r.getTokenValue();
+        // Casts should be fine since getTokenValue() returns byte[] - not sure
+        // why the signature returns Object
+        byte[] leftTokenValue = (byte[])l.getTokenValue();
+        byte[] rightTokenValue = (byte[])r.getTokenValue();
 
         Preconditions.checkArgument(leftTokenValue.length == rightTokenValue.length, "Tokens have unequal length");
         int tokenLength = leftTokenValue.length;
